@@ -10,7 +10,7 @@ const createToken = (user) => {
 
 const register = async (req, res) => {
   try {
-    const { name, phone, password, role } = req.body;
+    const { name, phone, password, role} = req.body;
 
     const existing = await User.findOne({ phone });
     if (existing) return res.status(400).json({ success:false, message: 'Phone already registered' });
@@ -18,7 +18,6 @@ const register = async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await User.create({ name, phone, password: hashed, role });
-    console.log(user);
     const token = createToken(user);
     res.status(201).json({ success:true, message: 'User registered successfully', user:{name:user?.name,phone:user?.phone,role:user?.role},token:token });
   } catch (err) {
