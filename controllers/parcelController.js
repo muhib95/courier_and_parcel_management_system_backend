@@ -53,5 +53,18 @@ const bookParcel = async (req, res) => {
     res.status(500).json({ success: false, message: 'Parcel booking failed' });
   }
 };
+const getMyParcels = async (req, res) => {
+  try {
+    const customerId = req.user.id; // from auth middleware
 
-module.exports = { bookParcel };
+    const parcels = await Parcel.find({ customer: customerId })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, parcels });
+  } catch (error) {
+    console.error('Error fetching bookings:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch bookings' });
+  }
+};
+
+module.exports = { bookParcel, getMyParcels };
