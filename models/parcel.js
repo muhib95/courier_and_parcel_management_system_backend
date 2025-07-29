@@ -20,6 +20,11 @@ const parcelSchema = new mongoose.Schema({
   parcelType: { type: String, enum: ['Small', 'Medium', 'Large'], required: true },
   paymentType: { type: String, enum: ['COD', 'Prepaid'], required: true },
   status: { type: String, enum: ['Booked', 'Assigned', 'Picked Up', 'In Transit', 'Delivered', 'Failed'], default: 'Booked' },
+  assignedAgent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // user with role 'Delivery Agent'
+    default: null,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
