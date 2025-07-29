@@ -5,6 +5,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const parcelRoutes = require('./routes/parcel');
 const adminRoutes = require('./routes/admin');
+const agentRoutes = require('./routes/agent');
 
 const app = express();
 
@@ -19,5 +20,6 @@ res.send('Server is running');
 app.use('/api/auth', authRoutes);
 app.use('/api/parcels', parcelRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/agent', agentRoutes);
 
 module.exports = app; // Export the app instance
