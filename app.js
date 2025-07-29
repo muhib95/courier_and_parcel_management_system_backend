@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
 const parcelRoutes = require('./routes/parcel');
-// const adminRoutes = require('./routes/admin');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -18,6 +18,6 @@ res.send('Server is running');
  });
 app.use('/api/auth', authRoutes);
 app.use('/api/parcels', parcelRoutes);
-// app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminRoutes);
 
 module.exports = app; // Export the app instance
