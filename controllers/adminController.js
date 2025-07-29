@@ -56,6 +56,15 @@ const assignParcel = async (req, res) => {
     if (!agent || agent.role !== 'agent') {
       return res.status(400).json({ message: 'Invalid agent' });
     }
+     // Find parcel and check if already assigned
+    const existingParcel = await Parcel.findById(parcelId);
+    if (!existingParcel) {
+      return res.status(404).json({ message: 'Parcel not found' });
+    }
+
+    if (existingParcel.assignedAgent) {
+      return res.status(400).json({ message: 'Parcel already assigned to an agent' });
+    }
     // Assign agent to parcel
     const parcel = await Parcel.findByIdAndUpdate(
       parcelId,
