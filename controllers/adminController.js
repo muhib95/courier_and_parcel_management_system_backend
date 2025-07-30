@@ -31,7 +31,9 @@ const getSingleBooking = async (req, res) => {
     }
 
     // Find parcel by ID
-    const parcel = await Parcel.findById(parcelId).populate("assignedAgent", "name phone").populate("customer", "name phone");
+    const parcel = await Parcel.findById(parcelId)
+      .populate("assignedAgent", "name phone")
+      .populate("customer", "name phone");
 
     if (!parcel) {
       return res
@@ -45,6 +47,7 @@ const getSingleBooking = async (req, res) => {
 };
 const assignParcel = async (req, res) => {
   try {
+    const io = req.app.get("io");
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -53,33 +56,41 @@ const assignParcel = async (req, res) => {
 
     // Validate agent exists and has role 'Delivery Agent'
     const agent = await User.findById(agentId);
-    if (!agent || agent.role !== 'agent') {
-      return res.status(400).json({ message: 'Invalid agent' });
+    if (!agent || agent.role !== "agent") {
+      return res.status(400).json({ message: "Invalid agent" });
     }
-     // Find parcel and check if already assigned
+    // Find parcel and check if already assigned
     const existingParcel = await Parcel.findById(parcelId);
     if (!existingParcel) {
-      return res.status(404).json({ message: 'Parcel not found' });
+      return res.status(404).json({ message: "Parcel not found" });
     }
 
     if (existingParcel.assignedAgent) {
-      return res.status(400).json({ message: 'Parcel already assigned to an agent' });
+      return res
+        .status(400)
+        .json({ message: "Parcel already assigned to an agent" });
     }
     // Assign agent to parcel
     const parcel = await Parcel.findByIdAndUpdate(
       parcelId,
       {
         assignedAgent: agentId,
-        status: 'Assigned',
+        status: "Assigned",
       },
       { new: true }
-    ).populate('assignedAgent','name phone email');
+    ).populate("assignedAgent", "name phone email");
 
     if (!parcel) {
-      return res.status(404).json({ success: false, message: 'Parcel not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Parcel not found" });
     }
+    io.emit("statusUpdated", {
+      parcelId,
+      status: parcel?.status,
+    });
 
-    res.json({ success: true, message: 'Agent assigned successfully', parcel });
+    res.json({ success: true, message: "Agent assigned successfully", parcel });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -90,10 +101,16 @@ const getAgents = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const users = await User.find({ role: 'agent' }, "-password"); // exclude password field
+    const users = await User.find({ role: "agent" }, "-password"); // exclude password field
     res.json({ success: true, users });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 };
-module.exports = { getUsers, getAllBooking, getSingleBooking, assignParcel,getAgents };
+module.exports = {
+  getUsers,
+  getAllBooking,
+  getSingleBooking,
+  assignParcel,
+  getAgents,
+};

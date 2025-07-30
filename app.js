@@ -1,6 +1,8 @@
 // app.js
 const express = require('express');
+const http = require("http");
 const cors = require('cors');
+const { Server } = require("socket.io");
 
 const authRoutes = require('./routes/auth');
 const parcelRoutes = require('./routes/parcel');
@@ -12,7 +14,27 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+const server = http.createServer(app);
 
+// ✅ Setup Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:8080", // use your frontend URL
+    methods: ["GET", "POST", "PATCH"],
+    credentials: true,
+  },
+});
+
+// ✅ Socket.IO Connection
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected:", socket.id);
+  });
+});
+// ✅ Make io available in routes
+app.set("io", io);
 // Routes
 app.get('/', (req,res)=>{
 res.send('Server is running');
@@ -22,4 +44,4 @@ app.use('/api/parcels', parcelRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/agent', agentRoutes);
 
-module.exports = app; // Export the app instance
+module.exports = {app,server}; // Export the app instance
