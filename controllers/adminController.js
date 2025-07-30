@@ -17,7 +17,7 @@ const getAllBooking = async (req, res) => {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }
-    const parcels = await Parcel.find({}, "-password");
+    const parcels = await Parcel.find({}, "-password").sort({ createdAt: -1 });
     res.json({ success: true, parcels });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
