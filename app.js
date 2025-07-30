@@ -19,7 +19,7 @@ const server = http.createServer(app);
 // ✅ Setup Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:8080", // use your frontend URL
+    origin: process.env.BASE_URL, // use your frontend URL
     methods: ["GET", "POST", "PATCH"],
     credentials: true,
   },
