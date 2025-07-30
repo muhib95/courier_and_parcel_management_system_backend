@@ -31,7 +31,7 @@ const getSingleBooking = async (req, res) => {
     }
 
     // Find parcel by ID
-    const parcel = await Parcel.findById(parcelId);
+    const parcel = await Parcel.findById(parcelId).populate("assignedAgent", "name phone").populate("customer", "name phone");
 
     if (!parcel) {
       return res
@@ -84,4 +84,16 @@ const assignParcel = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-module.exports = { getUsers, getAllBooking, getSingleBooking, assignParcel };
+const getAgents = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const users = await User.find({ role: 'agent' }, "-password"); // exclude password field
+    res.json({ success: true, users });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+module.exports = { getUsers, getAllBooking, getSingleBooking, assignParcel,getAgents };
