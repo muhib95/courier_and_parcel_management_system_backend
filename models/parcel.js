@@ -1,6 +1,10 @@
 // models/Parcel.js
 const mongoose = require('mongoose');
-
+const PRICING = {
+  Small: 50,
+  Medium: 100,
+  Large: 150,
+};
 const parcelSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
@@ -18,6 +22,7 @@ const parcelSchema = new mongoose.Schema({
     lng: Number,
   },
   parcelType: { type: String, enum: ['Small', 'Medium', 'Large'], required: true },
+  price: { type: Number, required: true },
   paymentType: { type: String, enum: ['COD', 'Prepaid'], required: true },
   status: { type: String, enum: ['Booked', 'Assigned', 'Picked Up', 'In Transit', 'Delivered', 'Failed'], default: 'Booked' },
   assignedAgent: {
@@ -26,6 +31,12 @@ const parcelSchema = new mongoose.Schema({
     default: null,
   },
   createdAt: { type: Date, default: Date.now },
+});
+parcelSchema.pre('save', function (next) {
+  if (this.isModified('parcelType') || this.isNew) {
+    this.price = PRICING[this.parcelType] || 0;
+  }
+  next();
 });
 
 module.exports = mongoose.model('Parcel', parcelSchema);
