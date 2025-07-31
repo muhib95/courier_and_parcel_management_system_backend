@@ -68,6 +68,7 @@ const getMyParcels = async (req, res) => {
 };
 const getParcelById = async (req, res) => {
   try {
+    console.log('a')
     const parcelId = req.params.id;
     const userId = req.user.id;
     const userRole = req.user.role;

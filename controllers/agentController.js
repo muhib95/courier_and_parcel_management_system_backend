@@ -37,7 +37,7 @@ const getSingleBooking = async (req, res) => {
 };
 
 const updateStatus = async (req, res) => {
-  const { status } = req.body;
+  const { status,pickupLocation } = req.body;
   const parcelId = req.params.id;
 
   const io = req.app.get("io");
@@ -49,7 +49,7 @@ const updateStatus = async (req, res) => {
   try {
     const updatedParcel = await Parcel.findByIdAndUpdate(
       parcelId,
-      { status },
+      { status,pickupLocation },
       { new: true } // returns updated document
     );
 
