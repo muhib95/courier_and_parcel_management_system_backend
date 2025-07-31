@@ -107,10 +107,59 @@ const getAgents = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+const getDashboardMetrics = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // 1. Daily Bookings (booked today)
+    const dailyBookings = await Parcel.countDocuments({
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    });
+
+    // 2. Failed Deliveries (status === "failed")
+    const failedDeliveries = await Parcel.countDocuments({ status: "Failed" });
+
+    // 3. Total COD Amounts for today (created today and has COD)
+    const codResult = await Parcel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startOfDay, $lte: endOfDay },
+          paymentType: "COD", // Assuming you store this way
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCOD: { $sum: "$price" },
+        },
+      },
+    ]);
+
+    const totalCODAmount = codResult[0]?.totalCOD || 0;
+
+    res.json({
+      dailyBookings,
+      failedDeliveries,
+      totalCODAmount,
+    });
+
+  } catch (error) {
+    console.error("Dashboard Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 module.exports = {
   getUsers,
   getAllBooking,
   getSingleBooking,
   assignParcel,
   getAgents,
+  getDashboardMetrics
 };

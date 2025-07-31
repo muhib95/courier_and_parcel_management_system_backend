@@ -22,7 +22,7 @@ const parcelSchema = new mongoose.Schema({
     lng: Number,
   },
   parcelType: { type: String, enum: ['Small', 'Medium', 'Large'], required: true },
-  price: { type: Number, required: true },
+  price: { type: Number },
   paymentType: { type: String, enum: ['COD', 'Prepaid'], required: true },
   status: { type: String, enum: ['Booked', 'Assigned', 'Picked Up', 'In Transit', 'Delivered', 'Failed'], default: 'Booked' },
   assignedAgent: {
