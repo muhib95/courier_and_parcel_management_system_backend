@@ -1,5 +1,8 @@
+const { Parser } = require("json2csv");
 const Parcel = require("../models/parcel");
 const User = require("../models/user");
+const PDFDocument = require("pdfkit");
+
 const getUsers = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -155,11 +158,76 @@ const getDashboardMetrics = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const exportParcelsPDF = async (req, res) => {
+  try {
+    const parcels = await Parcel.find().populate('customer assignedAgent');
+
+    // Create the PDF document in memory
+    const doc = new PDFDocument({ margin: 30, size: 'A4' });
+
+    // Set proper headers BEFORE piping
+    res.setHeader('Content-Disposition', 'attachment; filename="parcels_report.pdf"');
+    res.setHeader('Content-Type', 'application/pdf');
+
+    doc.pipe(res);
+
+    doc.fontSize(20).text('Parcels Report', { align: 'center' });
+    doc.moveDown();
+
+    parcels.forEach((p, i) => {
+      doc
+        .fontSize(12)
+        .text(`Tracking ID: ${p._id}`)
+        .text(`Customer: ${p.customer?.name || 'N/A'}`)
+        .text(`Agent: ${p.assignedAgent?.name || 'N/A'}`)
+        .text(`Status: ${p.status}`)
+        .text(`Price: ${p.price}`)
+        .text(`Date: ${new Date(p.createdAt).toLocaleDateString()}`)
+        .moveDown();
+    });
+
+    doc.end(); // End the PDF stream here
+  } catch (err) {
+    console.error(err);
+
+    // Check if headers are already sent before responding
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Failed to generate PDF' });
+    }
+  }
+};
+
+const exportParcelsCSV = async (req, res) => {
+  try {
+    const parcels = await Parcel.find().populate('customer assignedAgent');
+
+    const fields = [
+      { label: 'Tracking ID', value: '_id' },
+      { label: 'Customer Name', value: 'customer.name' },
+      { label: 'Agent Name', value: 'assignedAgent.name' },
+      { label: 'Status', value: 'status' },
+      { label: 'Price', value: 'price' },
+      { label: 'Created At', value: 'createdAt' },
+    ];
+
+    const parser = new Parser({ fields });
+    const csv = parser.parse(parcels);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('parcels_report.csv');
+    res.send(csv);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to export CSV' });
+  }
+};
 module.exports = {
   getUsers,
   getAllBooking,
   getSingleBooking,
   assignParcel,
   getAgents,
-  getDashboardMetrics
+  getDashboardMetrics,
+  exportParcelsPDF,
+  exportParcelsCSV
 };
